@@ -7,8 +7,9 @@ wandb/
 outputs/
 *.ckpt
 *.npy
-*.yaml
 *.json
+*.yaml
 *.pth
 *.npz
+*.npy
 *.gz

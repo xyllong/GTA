@@ -22,7 +22,8 @@ def download_d4rl_mujoco_data(env_name, dataset_type):
 	assert env_name in ['walker2d', 'halfcheetah', 'hopper']
 	assert dataset_type in ['medium', 'medium-expert', 'medium-replay', 'random', 'expert']
 
-	name = f'{env_name}-{dataset_type}-v2'
+	# name = f'{env_name}-{dataset_type}-v2'
+	name = f'{env_name}-{dataset_type}-v0'
 	pkl_file_path = os.path.join(data_dir, name)
 
 	print("processing: ", name)
@@ -45,8 +46,14 @@ def download_d4rl_mujoco_data(env_name, dataset_type):
 			final_timestep = dataset['timeouts'][i]
 		else:
 			final_timestep = (episode_step == 1000-1)
-		for k in ['observations', 'next_observations', 'actions', 'rewards', 'terminals']:
-			data_[k].append(dataset[k][i])
+		if not final_timestep:
+			if done_bool:
+				next_observation = np.zeros_like(dataset['observations'][i])
+			else:
+				next_observation = dataset['observations'][i + 1]
+			data_['next_observations'].append(next_observation)
+			for k in ['observations', 'actions', 'rewards', 'terminals']:
+				data_[k].append(dataset[k][i])
 		if done_bool or final_timestep:
 			episode_step = 0
 			episode_data = {}

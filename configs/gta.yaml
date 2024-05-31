@@ -27,12 +27,12 @@ ElucidatedDiffusion :
 
 # Training.
 Trainer : 
-  train_batch_size : &batch_size 256
-  train_lr : 3e-4
+  train_batch_size : &batch_size 1024
+  train_lr : 12e-4
   lr_scheduler : cosinewarmup
   weight_decay : 0
-  train_num_steps : 1000000
-  save_and_sample_every : 200000
+  train_num_steps : 250000
+  save_and_sample_every : 50000
   reweighted_training : False
   
   
@@ -45,9 +45,11 @@ SimpleDiffusionGenerator :
   save_num_transitions : 5000000
   temperature : 1.0
   weighted_sampling : False
+  # weighted_sampling : True
   state_conditioning : False
   with_strategy : False
   weight_param : 50.0
+  # weight_param : 50
 
 
 # Dataset.

@@ -139,7 +139,7 @@ class SimpleDiffusionGenerator:
             max_conditioning_return : Optional[float] = None,
             discounted_return : bool = False,
             retain_original : bool = False
-    ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+    ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray): # type: ignore
         # assert num_samples % self.sample_batch_size == 0, 'num_samples must be a multiple of sample_batch_size'
         num_batches = num_samples // self.sample_batch_size
         if num_samples % self.sample_batch_size != 0:
@@ -364,17 +364,23 @@ if __name__ == '__main__':
         modalities = cfg.Dataset.modalities,
         reweighted_training = cfg.Trainer.reweighted_training,
         reward_scale = cfg.Dataset.reward_scale,
-        discounted_return = cfg.Dataset.discounted_return
+        discounted_return = cfg.Dataset.discounted_return,
+        wandb_project = args.wandb_project,
+        wandb_kwargs = dict(
+            config=args,
+            group=args.wandb_group,
+            name=resfolder.split('/')[-1],
+        ),
     )
 
     if not args.load_checkpoint:
         # Initialize logging.
-        wandb.init(
-            project=args.wandb_project,
-            config=args,
-            group=args.wandb_group,
-            name=resfolder.split('/')[-1],
-        )
+        # wandb.init(
+        #     project=args.wandb_project,
+        #     config=args,
+        #     group=args.wandb_group,
+        #     name=resfolder.split('/')[-1],
+        # )
         # Train model.
         trainer.train()
     else:

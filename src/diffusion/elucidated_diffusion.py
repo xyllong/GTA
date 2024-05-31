@@ -478,11 +478,18 @@ class Trainer(object):
             reweighted_training: bool = False,
             reward_scale : float = 1.0,
             discounted_return : bool = True,
+            wandb_project: str = '',
+            wandb_kwargs: dict = {},
     ):
         super().__init__()
         self.accelerator = Accelerator(
             split_batches=split_batches,
-            mixed_precision='fp16' if fp16 else 'no'
+            mixed_precision='fp16' if fp16 else 'no',
+            log_with='wandb'
+        )
+        self.accelerator.init_trackers(
+            project_name=wandb_project,
+            init_kwargs=wandb_kwargs,
         )
         self.accelerator.native_amp = amp
         self.model = diffusion_model
@@ -513,7 +520,7 @@ class Trainer(object):
                                 batch_size=self.batch_size, 
                                 sampler=sampler, 
                                 pin_memory=True, 
-                                num_workers=0)
+                                num_workers=4)
                 dl = self.accelerator.prepare(dl)
                 self.dl = cycle(dl)
 
@@ -529,7 +536,7 @@ class Trainer(object):
                                 batch_size=self.batch_size,
                                 shuffle=True,
                                 pin_memory=True, 
-                                num_workers=0)
+                                num_workers=4)
                 dl = self.accelerator.prepare(dl)
                 self.dl = cycle(dl)
 
@@ -677,11 +684,18 @@ class Trainer(object):
                 accelerator.clip_grad_norm_(self.model.parameters(), 1.0)
                 pbar.set_description(f'loss: {total_loss:.4f}')
                 if accelerator.is_local_main_process:
-                    wandb.log({
-                        'step': self.step,
+                    # wandb.log({
+                    #     'step': self.step,
+                    #     'loss': total_loss,
+                    #     'lr': self.opt.param_groups[0]['lr']
+                    # })
+                    self.accelerator.log(
+                        values={
                         'loss': total_loss,
                         'lr': self.opt.param_groups[0]['lr']
-                    })
+                        },
+                        step=self.step,
+                    )
 
                 accelerator.wait_for_everyone()
 
@@ -704,6 +718,7 @@ class Trainer(object):
                     self.lr_scheduler.step()
 
         accelerator.print('training complete')
+        self.accelerator.end_training()
 
     # Allow user to pass in external data.
     def train_on_batch(
@@ -744,11 +759,19 @@ class Trainer(object):
 
         accelerator.clip_grad_norm_(self.model.parameters(), 1.0)
         if use_wandb:
-            wandb.log({
-                'step': self.step,
+            # wandb.log({
+            #     'step': self.step,
+            #     'loss': total_loss,
+            #     'lr': self.opt.param_groups[0]['lr'],
+            # })
+            self.accelerator.log(
+                values={
                 'loss': total_loss,
                 'lr': self.opt.param_groups[0]['lr'],
-            })
+                },
+                step=self.step,
+            )
+            
 
         accelerator.wait_for_everyone()
 
